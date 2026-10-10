@@ -4,13 +4,23 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>週五隨筆。傳道書 - 閱讀資料庫</title>
+    
+    <!-- PWA / 手機安裝支援設定 -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#2c3e35">
+    
+    <!-- iOS (iPhone/iPad) 專用安裝支援 -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="傳道書隨筆">
+    <link rel="apple-touch-icon" href="icon.png">
+
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Google Fonts: Noto Serif TC -->
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         body {
-            font-family: 'Noto Serif TC', serif;
+            /* 採用 Mac / iOS 標準繁體中文字體（PingFang TC / 蘋方），呈現最純正的 Mac 風格 */
+            font-family: -apple-system, BlinkMacSystemFont, "PingFang TC", "Heiti TC", "Microsoft JhengHei", sans-serif;
             background-color: #f3f6f4; /* 清新禪意淺綠灰調 */
             color: #2c3e35;
         }
@@ -18,7 +28,6 @@
             background: #ffffff;
             border: 1px solid #d8e2dc;
         }
-        /* 保留原本段落間距與換行 */
         .paragraph-block {
             margin-bottom: 1.25rem;
             line-height: 1.8;
@@ -33,13 +42,20 @@
     <!-- 頂部導航與選擇器 -->
     <header class="w-full bg-white shadow-sm border-b border-emerald-100 sticky top-0 z-50">
         <div class="max-w-3xl mx-auto px-4 py-3 flex flex-col sm:flex-row items-center justify-between gap-3">
-            <h1 class="text-lg font-bold text-emerald-800 tracking-wider">🌿 週五隨筆・傳道書</h1>
+            <h1 class="text-base sm:text-lg font-bold text-emerald-800 tracking-wider">🌿 週五隨筆・傳道書</h1>
             
-            <!-- 傳道書章節選擇器 -->
-            <div class="flex items-center gap-2 w-full sm:w-auto">
-                <select id="verseSelect" class="w-full sm:w-64 bg-emerald-50 border border-emerald-300 text-emerald-900 text-sm font-semibold rounded-lg focus:ring-emerald-500 focus:border-emerald-500 p-2 outline-none transition">
+            <!-- 功能區：章節選擇器 + 字體大小調整 -->
+            <div class="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
+                <select id="verseSelect" class="bg-emerald-50 border border-emerald-300 text-emerald-900 text-sm font-semibold rounded-lg focus:ring-emerald-500 focus:border-emerald-500 p-2 outline-none transition flex-grow sm:w-48">
                     <option value="">載入資料庫中...</option>
                 </select>
+
+                <!-- 字體大小控制按鈕 (A- / A+) -->
+                <div class="flex items-center gap-1 bg-emerald-50 border border-emerald-300 rounded-lg p-1 shrink-0">
+                    <span class="text-xs text-emerald-800 px-1 font-bold">字體</span>
+                    <button onclick="changeFontSize(-1)" class="w-7 h-7 bg-white hover:bg-emerald-100 text-emerald-900 rounded font-bold text-xs shadow-sm transition flex items-center justify-center" title="縮小字體">A-</button>
+                    <button onclick="changeFontSize(1)" class="w-7 h-7 bg-white hover:bg-emerald-100 text-emerald-900 rounded font-bold text-xs shadow-sm transition flex items-center justify-center" title="放大字體">A+</button>
+                </div>
             </div>
         </div>
     </header>
@@ -64,11 +80,11 @@
                     </div>
                 </div>
 
-                <!-- 經文內文區塊（字體較大且加粗，並保持段落距離） -->
-                <div id="scriptureText" class="text-emerald-950 font-bold text-lg sm:text-xl bg-emerald-50/80 p-5 rounded-xl mb-6 border-l-4 border-emerald-600 shadow-sm leading-relaxed"></div>
+                <!-- 經文內文區塊 -->
+                <div id="scriptureText" class="text-emerald-950 font-bold bg-emerald-50/80 p-5 rounded-xl mb-6 border-l-4 border-emerald-600 shadow-sm leading-relaxed transition-all"></div>
 
-                <!-- 默想與隨筆文章內文（保持原始段落間距） -->
-                <div id="reflectionText" class="text-gray-700 leading-relaxed text-justify text-base"></div>
+                <!-- 默想與隨筆文章內文 -->
+                <div id="reflectionText" class="text-gray-700 leading-relaxed text-justify transition-all"></div>
 
                 <!-- 語音朗讀控制列 -->
                 <div class="mt-8 pt-4 border-t border-emerald-100 flex flex-wrap items-center justify-between gap-3 bg-emerald-50/40 p-4 rounded-xl">
@@ -89,17 +105,26 @@
 
     <!-- 右下角極細版本編號 -->
     <footer class="w-full text-right px-4 mt-6">
-        <span class="text-[10px] text-gray-400 font-mono tracking-tighter select-none">v1.3.0</span>
+        <span class="text-[10px] text-gray-400 font-mono tracking-tighter select-none">v1.5.0</span>
     </footer>
 
     <!-- JavaScript 解析器與邏輯 -->
     <script>
         let dbEntries = [];
         let currentIndex = 0;
+        let fontSizeLevel = 1; // 0: 小, 1: 標準 (預設), 2: 大, 3: 特大
+        
+        // 定義各級別的字體大小 Tailwind 樣式
+        const fontScaleConfigs = [
+            { scripture: 'text-base sm:text-lg', reflection: 'text-sm sm:text-base' },
+            { scripture: 'text-lg sm:text-xl', reflection: 'text-base sm:text-lg' },
+            { scripture: 'text-xl sm:text-2xl', reflection: 'text-lg sm:text-xl' },
+            { scripture: 'text-2xl sm:text-3xl', reflection: 'text-xl sm:text-2xl' }
+        ];
+
         let synth = window.speechSynthesis;
         let utterance = null;
 
-        // 頁面載入時自動拉取 txt 檔案
         window.addEventListener('DOMContentLoaded', async () => {
             try {
                 const response = await fetch('週五隨筆。傳道書.txt');
@@ -110,12 +135,11 @@
                 console.error(error);
                 document.getElementById('loadingIndicator').innerHTML = `
                     <p class="text-red-500 font-medium">無法自動載入「週五隨筆。傳道書.txt」檔案。</p>
-                    <p class="text-xs text-gray-500 mt-2">請確保 index.html 與 txt 檔案放在同一個 GitHub Repository 目錄下，並透過網頁伺服器開啟。</p>
+                    <p class="text-xs text-gray-500 mt-2">請確保檔案放在同一個 GitHub Repository 目錄下。</p>
                 `;
             }
         });
 
-        // 解析文字檔案內容，精準保留段落與空格
         function parseDatabase(text) {
             const rawSections = text.split('【週五隨筆。傳道書】');
             dbEntries = [];
@@ -125,8 +149,6 @@
                 if (!trimmed) return;
 
                 const rawLines = trimmed.split('\n');
-                
-                // 第一個非空行為章節號（例如：傳1:2）
                 let verseRef = "";
                 let contentStartIndex = 0;
                 for (let i = 0; i < rawLines.length; i++) {
@@ -140,21 +162,18 @@
                 if (!verseRef) return;
 
                 const bodyLines = rawLines.slice(contentStartIndex);
-                
                 let scriptureLines = [];
                 let reflectionLines = [];
                 let isReflection = false;
 
                 for (let line of bodyLines) {
                     if (line.includes('＊歡迎轉載')) continue;
-
                     if (line.includes('……………………')) {
                         isReflection = true;
                         continue;
                     }
 
                     if (!isReflection) {
-                        // 判斷經文段落
                         if (line.trim().startsWith('*') || line.trim().endsWith('*') || scriptureLines.length === 0) {
                             scriptureLines.push(line);
                         } else {
@@ -183,7 +202,6 @@
             }
         }
 
-        // 填充選單
         function populateSelector() {
             const select = document.getElementById('verseSelect');
             select.innerHTML = '';
@@ -191,6 +209,7 @@
                 const option = document.createElement('option');
                 option.value = index;
                 option.textContent = `${entry.title}`;
+                option.className = "font-semibold";
                 select.appendChild(option);
             });
 
@@ -201,31 +220,40 @@
             });
         }
 
-        // 顯示該篇章內容（保留段落與行距）
         function displayEntry(index) {
             currentIndex = index;
             const entry = dbEntries[index];
 
             document.getElementById('verseSelect').value = index;
-
-            // 顯示章節名稱 (例如: 傳1:2)
             document.getElementById('verseTitle').textContent = entry.title;
 
-            // 顯示經文 (保留段落隔行)
             const cleanScripture = entry.scripture.replace(/\*/g, '');
-            document.getElementById('scriptureText').innerHTML = formatParagraphs(cleanScripture);
+            
+            // 套用字體大小設定
+            const currentConfig = fontScaleConfigs[fontSizeLevel];
+            
+            const scriptureEl = document.getElementById('scriptureText');
+            scriptureEl.className = `text-emerald-950 font-bold bg-emerald-50/80 p-5 rounded-xl mb-6 border-l-4 border-emerald-600 shadow-sm leading-relaxed transition-all ${currentConfig.scripture}`;
+            scriptureEl.innerHTML = formatParagraphs(cleanScripture);
 
-            // 顯示隨筆反思 (保留段落隔行)
-            document.getElementById('reflectionText').innerHTML = formatParagraphs(entry.reflection);
+            const reflectionEl = document.getElementById('reflectionText');
+            reflectionEl.className = `text-gray-700 leading-relaxed text-justify transition-all ${currentConfig.reflection}`;
+            reflectionEl.innerHTML = formatParagraphs(entry.reflection);
 
-            // 按鈕狀態
             document.getElementById('prevBtn').disabled = currentIndex === 0;
             document.getElementById('nextBtn').disabled = currentIndex === dbEntries.length - 1;
 
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        // 將換行文字格式化為帶有段落間距 (margin-bottom) 的 HTML 段落
+        // 改變字體大小
+        function changeFontSize(direction) {
+            fontSizeLevel += direction;
+            if (fontSizeLevel < 0) fontSizeLevel = 0;
+            if (fontSizeLevel >= fontScaleConfigs.length) fontSizeLevel = fontScaleConfigs.length - 1;
+            displayEntry(currentIndex);
+        }
+
         function formatParagraphs(text) {
             const paragraphs = text.split(/\n\s*\n/);
             return paragraphs
@@ -236,7 +264,6 @@
                 .join('');
         }
 
-        // 切換章節按鈕
         function changeVerse(direction) {
             stopSpeech();
             const newIndex = currentIndex + direction;
@@ -245,7 +272,6 @@
             }
         }
 
-        // 廣東話語音朗讀
         function toggleSpeech() {
             if (synth.speaking) {
                 if (synth.paused) {
