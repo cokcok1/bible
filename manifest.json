@@ -1,0 +1,15 @@
+{
+  "name": "週五隨筆。傳道書",
+  "short_name": "傳道書隨筆",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f3f6f4",
+  "theme_color": "#2c3e35",
+  "icons": [
+    {
+      "src": "icon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
