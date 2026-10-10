@@ -29,7 +29,7 @@
             
             <!-- 傳道書章節選擇器 -->
             <div class="flex items-center gap-2 w-full sm:w-auto">
-                <select id="verseSelect" class="w-full sm:w-64 bg-emerald-50 border border-emerald-300 text-emerald-900 text-sm rounded-lg focus:ring-emerald-500 focus:border-emerald-500 p-2 outline-none transition">
+                <select id="verseSelect" class="w-full sm:w-64 bg-emerald-50 border border-emerald-300 text-emerald-900 text-sm font-semibold rounded-lg focus:ring-emerald-500 focus:border-emerald-500 p-2 outline-none transition">
                     <option value="">載入資料庫中...</option>
                 </select>
             </div>
@@ -45,9 +45,9 @@
         <div id="contentContainer" class="hidden space-y-6">
             <!-- 閱讀卡片 -->
             <div class="zen-card rounded-2xl p-6 sm:p-8 shadow-sm">
-                <!-- 經文標題 -->
-                <div class="flex items-center justify-between border-b border-emerald-100 pb-4 mb-4">
-                    <span id="verseTitle" class="text-xl font-bold text-emerald-900 bg-emerald-50 px-3 py-1 rounded-md"></span>
+                <!-- 經文章節標題與導航按鈕 -->
+                <div class="flex items-center justify-between border-b border-emerald-100 pb-4 mb-5">
+                    <span id="verseTitle" class="text-xl sm:text-2xl font-bold text-emerald-900 bg-emerald-100/80 px-3 py-1 rounded-md tracking-wide"></span>
                     <div class="flex items-center gap-2">
                         <!-- 上一篇按鈕 -->
                         <button id="prevBtn" onclick="changeVerse(-1)" class="px-3 py-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded-lg transition disabled:opacity-30 disabled:cursor-not-allowed">上一段</button>
@@ -56,16 +56,16 @@
                     </div>
                 </div>
 
-                <!-- 經文內文 -->
-                <div id="scriptureText" class="text-emerald-950 font-semibold bg-emerald-50/60 p-4 rounded-xl mb-6 leading-relaxed border-l-4 border-emerald-500"></div>
+                <!-- 經文內文區塊（字體較大且加粗） -->
+                <div id="scriptureText" class="text-emerald-950 font-bold text-lg sm:text-xl bg-emerald-50/80 p-5 rounded-xl mb-6 leading-relaxed border-l-4 border-emerald-600 shadow-sm"></div>
 
-                <!-- 默想與反思內文 -->
+                <!-- 默想與隨筆文章內文 -->
                 <div id="reflectionText" class="text-gray-700 space-y-4 leading-relaxed text-justify text-base"></div>
 
                 <!-- 語音朗讀控制列 -->
-                <div class="mt-8 pt-4 border-t border-emerald-100 flex flex-wrap items-center justify-between gap-3 bg-emerald-50/30 p-4 rounded-xl">
+                <div class="mt-8 pt-4 border-t border-emerald-100 flex flex-wrap items-center justify-between gap-3 bg-emerald-50/40 p-4 rounded-xl">
                     <div class="flex items-center gap-2">
-                        <span class="text-xs text-emerald-800 font-medium tracking-wide">廣東話朗讀 (Siri 聲音風格)</span>
+                        <span class="text-xs text-emerald-800 font-semibold tracking-wide">廣東話朗讀 (Siri 聲音風格)</span>
                     </div>
                     <div class="flex items-center gap-2">
                         <button id="playBtn" onclick="toggleSpeech()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-sm font-medium shadow-sm transition flex items-center gap-1.5">
@@ -81,7 +81,7 @@
 
     <!-- 右下角極細版本編號 -->
     <footer class="w-full text-right px-4 mt-6">
-        <span class="text-[10px] text-gray-400 font-mono tracking-tighter select-none">v1.1.0</span>
+        <span class="text-[10px] text-gray-400 font-mono tracking-tighter select-none">v1.2.0</span>
     </footer>
 
     <!-- JavaScript 解析器與邏輯 -->
@@ -91,14 +91,12 @@
         let synth = window.speechSynthesis;
         let utterance = null;
 
-        // 當頁面載入時，自動從同目錄的 txt 檔案讀取資料
+        // 頁面載入時自動拉取 txt 檔案
         window.addEventListener('DOMContentLoaded', async () => {
             try {
-                // 讀取同目錄下的文字檔案（上傳到 GitHub 後確保檔名一致）
                 const response = await fetch('週五隨筆。傳道書.txt');
                 if (!response.ok) throw new Error('無法讀取資料庫檔案');
                 const rawText = await response.text();
-                
                 parseDatabase(rawText);
             } catch (error) {
                 console.error(error);
@@ -111,7 +109,6 @@
 
         // 解析文字檔案內容
         function parseDatabase(text) {
-            // 以 【週五隨筆。傳道書】 作為分隔符號
             const rawSections = text.split('【週五隨筆。傳道書】');
             dbEntries = [];
 
@@ -119,22 +116,47 @@
                 const trimmed = section.trim();
                 if (!trimmed) return;
 
-                const lines = trimmed.split('\n');
-                let verseRef = lines[0].trim();
-                let bodyLines = lines.slice(1);
+                const lines = trimmed.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+                if (lines.length < 2) return;
 
-                // 組合剩餘內文
-                let fullBodyText = bodyLines.join('\n').trim();
+                // 第1行為章節 (例如: 傳1:2)
+                const verseRef = lines[0];
 
-                // 移除底部多餘的 ＊歡迎轉載 標籤
-                fullBodyText = fullBodyText.replace(/＊歡迎轉載/g, '').trim();
+                // 尋找經文內容與隨筆隨感內容
+                let scriptureLines = [];
+                let reflectionLines = [];
+                let isReflectionSection = false;
 
-                if (verseRef) {
-                    dbEntries.push({
-                        title: verseRef,
-                        rawContent: fullBodyText
-                    });
+                for (let i = 1; i < lines.length; i++) {
+                    const line = lines[i];
+
+                    // 去除結尾轉載標籤
+                    if (line.includes('＊歡迎轉載')) continue;
+
+                    // 若遇到分隔線，後續歸為隨筆文章
+                    if (line.includes('……………………')) {
+                        isReflectionSection = true;
+                        continue;
+                    }
+
+                    if (!isReflectionSection) {
+                        // 判斷是否為經文段落（以 * 包裹或前幾行內容）
+                        if (line.startsWith('*') || line.endsWith('*') || scriptureLines.length === 0) {
+                            scriptureLines.push(line);
+                        } else {
+                            isReflectionSection = true;
+                            reflectionLines.push(line);
+                        }
+                    } else {
+                        reflectionLines.push(line);
+                    }
                 }
+
+                dbEntries.push({
+                    title: verseRef,
+                    scripture: scriptureLines.join('\n'),
+                    reflection: reflectionLines.join('\n')
+                });
             });
 
             if (dbEntries.length > 0) {
@@ -147,15 +169,14 @@
             }
         }
 
-        // 填充下拉選單
+        // 填充選單
         function populateSelector() {
             const select = document.getElementById('verseSelect');
             select.innerHTML = '';
             dbEntries.forEach((entry, index) => {
                 const option = document.createElement('option');
                 option.value = index;
-                // 提取簡短標題作為選單選項
-                option.textContent = `第 ${index + 1} 篇：${entry.title.split('\n')[0]}`;
+                option.textContent = `${entry.title}`;
                 select.appendChild(option);
             });
 
@@ -166,47 +187,39 @@
             });
         }
 
-        // 顯示指定索引的內容
+        // 顯示該篇章內容
         function displayEntry(index) {
             currentIndex = index;
             const entry = dbEntries[index];
-            
-            // 更新下拉選單狀態
+
             document.getElementById('verseSelect').value = index;
 
-            // 設定標題
-            const firstLineBreak = entry.title.indexOf('\n');
-            const verseNum = firstLineBreak !== -1 ? entry.title.substring(0, firstLineBreak) : entry.title;
-            document.getElementById('verseTitle').textContent = verseNum;
+            // 顯示章節 (傳1:2)
+            document.getElementById('verseTitle').textContent = entry.title;
 
-            // 分離經文與默想反思
-            let contentHtml = entry.rawContent;
-            // 尋找經文區塊（通常以 * 包住或在開頭）
-            let parts = contentHtml.split('……………………');
-            let scripturePart = parts[0] || '';
-            let reflectionPart = parts.slice(1).join('<br>……………………<br>') || contentHtml;
+            // 顯示經文 (加大、加粗，並移除多餘的 Markdown 星號顯示)
+            const cleanScripture = entry.scripture.replace(/\*/g, '');
+            document.getElementById('scriptureText').textContent = cleanScripture;
 
-            // 格式化經文
-            document.getElementById('scriptureText').innerHTML = formatMarkdown(scripturePart);
-            
-            // 格式化反思與作者
-            document.getElementById('reflectionText').innerHTML = formatMarkdown(reflectionPart);
+            // 顯示隨筆反思 (排版換行)
+            document.getElementById('reflectionText').innerHTML = formatMarkdown(entry.reflection);
 
-            // 按鈕狀態
+            // 調整上一頁/下一頁按鈕狀態
             document.getElementById('prevBtn').disabled = currentIndex === 0;
             document.getElementById('nextBtn').disabled = currentIndex === dbEntries.length - 1;
 
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        // 簡單的文字格式化（支援粗體及換行）
+        // 文字格式化
         function formatMarkdown(text) {
             return text
-                .replace(/\*(.*?)\*/g, '<strong class="text-emerald-900">$1</strong>')
+                .replace(/\*(.*?)\*/g, '<strong>$1</strong>')
+                .replace(/\n\n/g, '<br><br>')
                 .replace(/\n/g, '<br>');
         }
 
-        // 切換上一篇 / 下一篇
+        // 切換章節按鈕
         function changeVerse(direction) {
             stopSpeech();
             const newIndex = currentIndex + direction;
@@ -215,7 +228,7 @@
             }
         }
 
-        // 廣東話語音朗讀控制（模擬 Siri 後生女聲）
+        // 廣東話語音朗讀
         function toggleSpeech() {
             if (synth.speaking) {
                 if (synth.paused) {
@@ -229,16 +242,14 @@
             }
 
             const entry = dbEntries[currentIndex];
-            // 清理 HTML 標籤後朗讀純文字
-            const cleanText = (document.getElementById('verseTitle').textContent + "。" + entry.rawContent)
-                .replace(/<[^>]*>/g, '')
-                .replace(/\*/g, '');
+            const cleanText = `${entry.title}。${entry.scripture}。${entry.reflection}`
+                .replace(/\*/g, '')
+                .replace(/<[^>]*>/g, '');
 
             utterance = new SpeechSynthesisUtterance(cleanText);
-            utterance.lang = 'zh-HK'; // 設定為香港廣東話
-            utterance.rate = 1.0;     // 正常語速
+            utterance.lang = 'zh-HK';
+            utterance.rate = 1.0;
 
-            // 嘗試尋找 Siri 風格的年輕女聲（通常包含 "cantonese", "sin-ji", "Meijia" 或女性特徵）
             const voices = synth.getVoices();
             const hkVoice = voices.find(v => v.lang === 'zh-HK' && (v.name.includes('Sin-ji') || v.name.includes('HiuMaan') || v.name.includes('Female') || v.name.includes('女')));
             if (hkVoice) {
