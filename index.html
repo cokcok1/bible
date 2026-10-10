@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>週五隨筆。傳道書</title>
+    <title>週五隨筆。傳道書 - 閱讀資料庫</title>
     
     <!-- PWA / 手機安裝支援設定 -->
     <link rel="manifest" href="manifest.json">
@@ -12,7 +12,7 @@
     <!-- iOS (iPhone/iPad) 專用安裝支援 -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="週五隨筆。傳道書">
+    <meta name="apple-mobile-web-app-title" content="傳道書隨筆">
     <link rel="apple-touch-icon" href="icon.png">
 
     <!-- Tailwind CSS CDN -->
@@ -39,7 +39,7 @@
 </head>
 <body class="min-h-screen flex flex-col justify-between pb-10">
 
-    <!-- 頂部導航與選擇器（字體加大一格） -->
+    <!-- 頂部導航與選擇器 -->
     <header class="w-full bg-white shadow-sm border-b border-emerald-100 sticky top-0 z-50">
         <div class="max-w-3xl mx-auto px-4 py-3.5 flex flex-col sm:flex-row items-center justify-between gap-3">
             <h1 class="text-lg sm:text-xl font-bold text-emerald-850 tracking-wider">🌿 週五隨筆・傳道書</h1>
@@ -105,18 +105,15 @@
 
     <!-- 右下角極細版本編號 -->
     <footer class="w-full text-right px-4 mt-6">
-        <span class="text-[10px] text-gray-400 font-mono tracking-tighter select-none">v1.6.0</span>
+        <span class="text-[10px] text-gray-400 font-mono tracking-tighter select-none">v1.7.0</span>
     </footer>
 
     <!-- JavaScript 解析器與邏輯 -->
     <script>
         let dbEntries = [];
         let currentIndex = 0;
-        
-        // 字體整體調大一格（預設由 Level 1 提升至 Level 2，對應更大一格嘅字體）
         let fontSizeLevel = parseInt(localStorage.getItem('fontSizeLevel')) || 2;
         
-        // 定義各級別的字體大小 Tailwind 樣式（整體放大一格）
         const fontScaleConfigs = [
             { scripture: 'text-lg sm:text-xl', reflection: 'text-base sm:text-lg' },
             { scripture: 'text-xl sm:text-2xl', reflection: 'text-lg sm:text-xl' },
@@ -197,7 +194,6 @@
             if (dbEntries.length > 0) {
                 populateSelector();
                 
-                // 自動讀取上次記憶嘅閱讀頁數（如果冇記錄就預設去第 0 頁）
                 let savedIndex = parseInt(localStorage.getItem('lastReadIndex'));
                 if (isNaN(savedIndex) || savedIndex < 0 || savedIndex >= dbEntries.length) {
                     savedIndex = 0;
@@ -231,12 +227,10 @@
 
         function displayEntry(index) {
             currentIndex = index;
-            
-            // 每次切換或載入時，將當前頁碼儲存落 localStorage
             localStorage.setItem('lastReadIndex', currentIndex);
 
             document.getElementById('verseSelect').value = index;
-            document.getElementById('verseTitle').textContent = entryTitle(index);
+            document.getElementById('verseTitle').textContent = dbEntries[index].title;
 
             const entry = dbEntries[index];
             const cleanScripture = entry.scripture.replace(/\*/g, '');
@@ -257,11 +251,6 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        function entryTitle(index) {
-            return dbEntries[index].title;
-        }
-
-        // 改變字體大小並記憶
         function changeFontSize(direction) {
             fontSizeLevel += direction;
             if (fontSizeLevel < 0) fontSizeLevel = 0;
@@ -289,6 +278,23 @@
             }
         }
 
+        // 將經文章節標題（如 傳1:2 或 傳7:11-12）轉成完美語音朗讀的格式
+        function formatTitleForSpeech(title) {
+            // 匹配格式例如：傳1:2 或 傳7:11-12
+            const match = title.match(/^傳(\d+):(\d+)(?:-(\d+))?$/);
+            if (match) {
+                const chapter = match[1];
+                const verseStart = match[2];
+                const verseEnd = match[3];
+                if (verseEnd) {
+                    return `傳道書第${chapter}章第${verseStart}至第${verseEnd}節`;
+                } else {
+                    return `傳道書第${chapter}章第${verseStart}節`;
+                }
+            }
+            return title.replace('傳', '傳道書');
+        }
+
         function toggleSpeech() {
             if (synth.speaking) {
                 if (synth.paused) {
@@ -302,7 +308,11 @@
             }
 
             const entry = dbEntries[currentIndex];
-            const cleanText = `${entry.title}。${entry.scripture}。${entry.reflection}`
+            
+            // 使用專用函數將標題轉化為語音友好的讀法，畫面顯示保持原狀
+            const spokenTitle = formatTitleForSpeech(entry.title);
+            
+            const cleanText = `${spokenTitle}。${entry.scripture}。${entry.reflection}`
                 .replace(/\*/g, '')
                 .replace(/<[^>]*>/g, '');
 
