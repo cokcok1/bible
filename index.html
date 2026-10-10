@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>週五隨筆。傳道書</title>
+    <title>週五隨筆。傳道書 - 閱讀資料庫</title>
     
     <!-- PWA / 手機安裝支援設定 -->
     <link rel="manifest" href="manifest.json">
@@ -12,14 +12,14 @@
     <!-- iOS (iPhone/iPad) 專用安裝支援 -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="週五隨筆。傳道書">
+    <meta name="apple-mobile-web-app-title" content="傳道書隨筆">
     <link rel="apple-touch-icon" href="icon.png">
 
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
-            /* 採用 Mac / iOS 標準繁體中文字體（PingFang TC / 蘋方），呈現最純正的 Mac 風格 */
+            /* 採用 Mac / iOS 標準繁體中文字體（PingFang TC / 蘋方） */
             font-family: -apple-system, BlinkMacSystemFont, "PingFang TC", "Heiti TC", "Microsoft JhengHei", sans-serif;
             background-color: #f3f6f4; /* 清新禪意淺綠灰調 */
             color: #2c3e35;
@@ -39,22 +39,22 @@
 </head>
 <body class="min-h-screen flex flex-col justify-between pb-10">
 
-    <!-- 頂部導航與選擇器 -->
+    <!-- 頂部導航與選擇器（字體加大一格） -->
     <header class="w-full bg-white shadow-sm border-b border-emerald-100 sticky top-0 z-50">
-        <div class="max-w-3xl mx-auto px-4 py-3 flex flex-col sm:flex-row items-center justify-between gap-3">
-            <h1 class="text-base sm:text-lg font-bold text-emerald-800 tracking-wider">🌿 週五隨筆・傳道書</h1>
+        <div class="max-w-3xl mx-auto px-4 py-3.5 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <h1 class="text-lg sm:text-xl font-bold text-emerald-850 tracking-wider">🌿 週五隨筆・傳道書</h1>
             
             <!-- 功能區：章節選擇器 + 字體大小調整 -->
-            <div class="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
-                <select id="verseSelect" class="bg-emerald-50 border border-emerald-300 text-emerald-900 text-sm font-semibold rounded-lg focus:ring-emerald-500 focus:border-emerald-500 p-2 outline-none transition flex-grow sm:w-48">
+            <div class="flex items-center gap-2.5 w-full sm:w-auto justify-between sm:justify-end">
+                <select id="verseSelect" class="bg-emerald-50 border border-emerald-300 text-emerald-950 text-base font-semibold rounded-lg focus:ring-emerald-500 focus:border-emerald-500 p-2 outline-none transition flex-grow sm:w-56">
                     <option value="">載入資料庫中...</option>
                 </select>
 
                 <!-- 字體大小控制按鈕 (A- / A+) -->
                 <div class="flex items-center gap-1 bg-emerald-50 border border-emerald-300 rounded-lg p-1 shrink-0">
                     <span class="text-xs text-emerald-800 px-1 font-bold">字體</span>
-                    <button onclick="changeFontSize(-1)" class="w-7 h-7 bg-white hover:bg-emerald-100 text-emerald-900 rounded font-bold text-xs shadow-sm transition flex items-center justify-center" title="縮小字體">A-</button>
-                    <button onclick="changeFontSize(1)" class="w-7 h-7 bg-white hover:bg-emerald-100 text-emerald-900 rounded font-bold text-xs shadow-sm transition flex items-center justify-center" title="放大字體">A+</button>
+                    <button onclick="changeFontSize(-1)" class="w-7 h-7 bg-white hover:bg-emerald-100 text-emerald-950 rounded font-bold text-xs shadow-sm transition flex items-center justify-center" title="縮小字體">A-</button>
+                    <button onclick="changeFontSize(1)" class="w-7 h-7 bg-white hover:bg-emerald-100 text-emerald-950 rounded font-bold text-xs shadow-sm transition flex items-center justify-center" title="放大字體">A+</button>
                 </div>
             </div>
         </div>
@@ -71,12 +71,12 @@
             <div class="zen-card rounded-2xl p-6 sm:p-8 shadow-sm">
                 <!-- 經文章節標題與導航按鈕 -->
                 <div class="flex items-center justify-between border-b border-emerald-100 pb-4 mb-5">
-                    <span id="verseTitle" class="text-xl sm:text-2xl font-bold text-emerald-900 bg-emerald-100/80 px-3 py-1 rounded-md tracking-wide"></span>
+                    <span id="verseTitle" class="text-2xl sm:text-3xl font-bold text-emerald-950 bg-emerald-100/80 px-3.5 py-1 rounded-md tracking-wide"></span>
                     <div class="flex items-center gap-2">
                         <!-- 上一篇按鈕 -->
-                        <button id="prevBtn" onclick="changeVerse(-1)" class="px-3 py-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded-lg transition disabled:opacity-30 disabled:cursor-not-allowed">上一段</button>
+                        <button id="prevBtn" onclick="changeVerse(-1)" class="px-3.5 py-1.5 text-xs sm:text-sm font-semibold text-emerald-750 bg-emerald-50 hover:bg-emerald-100 rounded-lg transition disabled:opacity-30 disabled:cursor-not-allowed">上一段</button>
                         <!-- 下一篇按鈕 -->
-                        <button id="nextBtn" onclick="changeVerse(1)" class="px-3 py-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded-lg transition disabled:opacity-30 disabled:cursor-not-allowed">下一段</button>
+                        <button id="nextBtn" onclick="changeVerse(1)" class="px-3.5 py-1.5 text-xs sm:text-sm font-semibold text-emerald-750 bg-emerald-50 hover:bg-emerald-100 rounded-lg transition disabled:opacity-30 disabled:cursor-not-allowed">下一段</button>
                     </div>
                 </div>
 
@@ -84,15 +84,15 @@
                 <div id="scriptureText" class="text-emerald-950 font-bold bg-emerald-50/80 p-5 rounded-xl mb-6 border-l-4 border-emerald-600 shadow-sm leading-relaxed transition-all"></div>
 
                 <!-- 默想與隨筆文章內文 -->
-                <div id="reflectionText" class="text-gray-700 leading-relaxed text-justify transition-all"></div>
+                <div id="reflectionText" class="text-gray-800 leading-relaxed text-justify transition-all"></div>
 
                 <!-- 語音朗讀控制列 -->
                 <div class="mt-8 pt-4 border-t border-emerald-100 flex flex-wrap items-center justify-between gap-3 bg-emerald-50/40 p-4 rounded-xl">
                     <div class="flex items-center gap-2">
-                        <span class="text-xs text-emerald-800 font-semibold tracking-wide">廣東話朗讀 (Siri 聲音風格)</span>
+                        <span class="text-xs text-emerald-850 font-semibold tracking-wide">廣東話朗讀 (Siri 聲音風格)</span>
                     </div>
                     <div class="flex items-center gap-2">
-                        <button id="playBtn" onclick="toggleSpeech()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-sm font-medium shadow-sm transition flex items-center gap-1.5">
+                        <button id="playBtn" onclick="toggleSpeech()" class="bg-emerald-650 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-sm font-medium shadow-sm transition flex items-center gap-1.5" style="background-color: #2e7d32;">
                             <svg id="playIcon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                             <span id="playText">聆聽整段</span>
                         </button>
@@ -105,21 +105,23 @@
 
     <!-- 右下角極細版本編號 -->
     <footer class="w-full text-right px-4 mt-6">
-        <span class="text-[10px] text-gray-400 font-mono tracking-tighter select-none">v1.5.0</span>
+        <span class="text-[10px] text-gray-400 font-mono tracking-tighter select-none">v1.6.0</span>
     </footer>
 
     <!-- JavaScript 解析器與邏輯 -->
     <script>
         let dbEntries = [];
         let currentIndex = 0;
-        let fontSizeLevel = 1; // 0: 小, 1: 標準 (預設), 2: 大, 3: 特大
         
-        // 定義各級別的字體大小 Tailwind 樣式
+        // 字體整體調大一格（預設由 Level 1 提升至 Level 2，對應更大一格嘅字體）
+        let fontSizeLevel = parseInt(localStorage.getItem('fontSizeLevel')) || 2;
+        
+        // 定義各級別的字體大小 Tailwind 樣式（整體放大一格）
         const fontScaleConfigs = [
-            { scripture: 'text-base sm:text-lg', reflection: 'text-sm sm:text-base' },
             { scripture: 'text-lg sm:text-xl', reflection: 'text-base sm:text-lg' },
             { scripture: 'text-xl sm:text-2xl', reflection: 'text-lg sm:text-xl' },
-            { scripture: 'text-2xl sm:text-3xl', reflection: 'text-xl sm:text-2xl' }
+            { scripture: 'text-2xl sm:text-3xl', reflection: 'text-xl sm:text-2xl' },
+            { scripture: 'text-3xl sm:text-4xl', reflection: 'text-2xl sm:text-3xl' }
         ];
 
         let synth = window.speechSynthesis;
@@ -194,7 +196,14 @@
 
             if (dbEntries.length > 0) {
                 populateSelector();
-                displayEntry(0);
+                
+                // 自動讀取上次記憶嘅閱讀頁數（如果冇記錄就預設去第 0 頁）
+                let savedIndex = parseInt(localStorage.getItem('lastReadIndex'));
+                if (isNaN(savedIndex) || savedIndex < 0 || savedIndex >= dbEntries.length) {
+                    savedIndex = 0;
+                }
+                
+                displayEntry(savedIndex);
                 document.getElementById('loadingIndicator').classList.add('hidden');
                 document.getElementById('contentContainer').classList.remove('hidden');
             } else {
@@ -222,14 +231,16 @@
 
         function displayEntry(index) {
             currentIndex = index;
-            const entry = dbEntries[index];
+            
+            // 每次切換或載入時，將當前頁碼儲存落 localStorage
+            localStorage.setItem('lastReadIndex', currentIndex);
 
             document.getElementById('verseSelect').value = index;
-            document.getElementById('verseTitle').textContent = entry.title;
+            document.getElementById('verseTitle').textContent = entryTitle(index);
 
+            const entry = dbEntries[index];
             const cleanScripture = entry.scripture.replace(/\*/g, '');
             
-            // 套用字體大小設定
             const currentConfig = fontScaleConfigs[fontSizeLevel];
             
             const scriptureEl = document.getElementById('scriptureText');
@@ -237,7 +248,7 @@
             scriptureEl.innerHTML = formatParagraphs(cleanScripture);
 
             const reflectionEl = document.getElementById('reflectionText');
-            reflectionEl.className = `text-gray-700 leading-relaxed text-justify transition-all ${currentConfig.reflection}`;
+            reflectionEl.className = `text-gray-800 leading-relaxed text-justify transition-all ${currentConfig.reflection}`;
             reflectionEl.innerHTML = formatParagraphs(entry.reflection);
 
             document.getElementById('prevBtn').disabled = currentIndex === 0;
@@ -246,11 +257,17 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        // 改變字體大小
+        function entryTitle(index) {
+            return dbEntries[index].title;
+        }
+
+        // 改變字體大小並記憶
         function changeFontSize(direction) {
             fontSizeLevel += direction;
             if (fontSizeLevel < 0) fontSizeLevel = 0;
             if (fontSizeLevel >= fontScaleConfigs.length) fontSizeLevel = fontScaleConfigs.length - 1;
+            
+            localStorage.setItem('fontSizeLevel', fontSizeLevel);
             displayEntry(currentIndex);
         }
 
