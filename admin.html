@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>週五隨筆・傳道書 - 管理員page</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "PingFang TC", "Heiti TC", "Microsoft JhengHei", sans-serif;
+            background-color: #f3f6f4;
+            color: #2c3e35;
+        }
+        .zen-card {
+            background: #ffffff;
+            border: 1px solid #d8e2dc;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between pb-10">
+
+    <!-- 頂部導航 -->
+    <header class="w-full bg-white shadow-sm border-b border-emerald-100 sticky top-0 z-50">
+        <div class="max-w-3xl mx-auto px-4 py-3.5 flex items-center justify-between">
+            <h1 class="text-lg font-bold text-emerald-900 tracking-wider">🌿 管理員後台：新增隨筆文章</h1>
+            <a href="index.html" target="_blank" class="text-xs text-emerald-700 bg-emerald-50 hover:bg-emerald-100 px-3 py-1.5 rounded-lg font-semibold transition">前往前台閱讀網頁 ↗</a>
+        </div>
+    </header>
+
+    <!-- 主要操作區 -->
+    <main class="max-w-3xl w-full mx-auto px-4 mt-6 flex-grow space-y-6">
+        
+        <!-- GitHub 設定卡片 -->
+        <div class="zen-card rounded-2xl p-6 shadow-sm">
+            <h2 class="text-base font-bold text-emerald-900 mb-4 flex items-center gap-2">
+                <span>⚙️ GitHub 連結設定</span>
+                <span class="text-xs font-normal text-gray-500">（系統會自動記憶，只需設定一次）</span>
+            </h2>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-semibold text-emerald-800 mb-1">GitHub 用戶名稱 (Username)</label>
+                    <input type="text" id="ghOwner" placeholder="例如: yourname" class="w-full bg-emerald-50/50 border border-emerald-300 rounded-lg p-2.5 text-sm outline-none focus:border-emerald-600 transition">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-emerald-800 mb-1">GitHub 倉庫名稱 (Repository)</label>
+                    <input type="text" id="ghRepo" placeholder="例如: ecclesiastes-app" class="w-full bg-emerald-50/50 border border-emerald-300 rounded-lg p-2.5 text-sm outline-none focus:border-emerald-600 transition">
+                </div>
+            </div>
+
+            <div class="mt-4">
+                <label class="block text-xs font-semibold text-emerald-800 mb-1">GitHub Personal Access Token (存取權杖)</label>
+                <input type="password" id="ghToken" placeholder="請貼上您的 ghp_xxxxxxxxxxxx 權杖" class="w-full bg-emerald-50/50 border border-emerald-300 rounded-lg p-2.5 text-sm outline-none focus:border-emerald-600 transition font-mono">
+                <p class="text-[11px] text-gray-500 mt-1">Token 需具備 Contents (Read and write) 權限。資料只會安全地保存在您瀏覽器的 LocalStorage 中。</p>
+            </div>
+            
+            <div class="mt-4 text-right">
+                <button onclick="saveSettings()" class="bg-emerald-700 hover:bg-emerald-800 text-white px-4 py-2 rounded-xl text-xs font-semibold shadow-sm transition">儲存設定</button>
+            </div>
+        </div>
+
+        <!-- 文章內容上傳卡片 -->
+        <div class="zen-card rounded-2xl p-6 shadow-sm">
+            <h2 class="text-base font-bold text-emerald-900 mb-2">📝 新增文章內容</h2>
+            <p class="text-xs text-gray-600 mb-4">請直接貼上完整的格式內容（包含標題、經文、分隔線及隨筆反思）。系統會自動追加到檔案最尾。</p>
+
+            <div class="mb-4">
+                <textarea id="newContent" rows="14" placeholder="【週五隨筆。傳道書】
+
+傳10:10
+斧頭若鈍了...
+～ 鄭澤賢傳道
+＊歡迎轉載" class="w-full bg-emerald-50/30 border border-emerald-300 rounded-xl p-4 text-sm font-mono leading-relaxed outline-none focus:border-emerald-600 transition"></textarea>
+            </div>
+
+            <div class="flex items-center justify-between flex-wrap gap-3">
+                <span id="statusMessage" class="text-xs font-semibold text-gray-600">準備就緒</span>
+                <button onclick="appendAndUpload()" id="submitBtn" class="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2.5 rounded-xl text-sm font-semibold shadow transition flex items-center gap-2">
+                    <span>🚀 一鍵上傳更新到資料庫</span>
+                </button>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- 頁尾 -->
+    <footer class="w-full text-right px-4 mt-6">
+        <span class="text-[10px] text-gray-400 font-mono tracking-tighter select-none">Admin v1.0.0</span>
+    </footer>
+
+    <!-- 後台邏輯 Script -->
+    <script>
+        const filePath = '週五隨筆。傳道書.txt';
+
+        // 頁面載入時自動還原已儲存嘅設定
+        window.addEventListener('DOMContentLoaded', () => {
+            if (localStorage.getItem('ghOwner')) document.getElementById('ghOwner').value = localStorage.getItem('ghOwner');
+            if (localStorage.getItem('ghRepo')) document.getElementById('ghRepo').value = localStorage.getItem('ghRepo');
+            if (localStorage.getItem('ghToken')) document.getElementById('ghToken').value = localStorage.getItem('ghToken');
+        });
+
+        function saveSettings() {
+            const owner = document.getElementById('ghOwner').value.trim();
+            const repo = document.getElementById('ghRepo').value.trim();
+            const token = document.getElementById('ghToken').value.trim();
+
+            localStorage.setItem('ghOwner', owner);
+            localStorage.setItem('ghRepo', repo);
+            localStorage.setItem('ghToken', token);
+
+            alert('設定已成功儲存！');
+        }
+
+        // 處理 Unicode 字符轉 Base64 避免亂碼
+        function b64EncodeUnicode(str) {
+            return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, function(match, p1) {
+                return String.fromCharCode('0x' + p1);
+            }));
+        }
+
+        function b64DecodeUnicode(str) {
+            return decodeURIComponent(atob(str).split('').map(function(c) {
+                return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+            }).join(''));
+        }
+
+        async function appendAndUpload() {
+            const owner = document.getElementById('ghOwner').value.trim();
+            const repo = document.getElementById('ghRepo').value.trim();
+            const token = document.getElementById('ghToken').value.trim();
+            const newText = document.getElementById('newContent').value.trim();
+            const statusEl = document.getElementById('statusMessage');
+            const btnEl = document.getElementById('submitBtn');
+
+            if (!owner || !repo || !token) {
+                alert('請先填寫完整嘅 GitHub 設定（Owner, Repo, Token）！');
+                return;
+            }
+
+            if (!newText) {
+                alert('請輸入要新增嘅文章內容！');
+                return;
+            }
+
+            // 自動儲存設定
+            localStorage.setItem('ghOwner', owner);
+            localStorage.setItem('ghRepo', repo);
+            localStorage.setItem('ghToken', token);
+
+            btnEl.disabled = true;
+            statusEl.textContent = '⏳ 正在連接 GitHub 讀取現有資料庫...';
+            statusEl.className = 'text-xs font-semibold text-blue-600 animate-pulse';
+
+            const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${filePath}`;
+
+            try {
+                // 1. 先用 GET 獲取現有檔案內容與 SHA
+                const getRes = await fetch(apiUrl, {
+                    headers: {
+                        'Authorization': `token ${token}`,
+                        'Accept': 'application/vnd.github.v3+json'
+                    }
+                });
+
+                if (!getRes.ok) {
+                    throw new Error('無法讀取 GitHub 上的 txt 檔案，請檢查 Repo 名稱或 Token 權限是否正確。');
+                }
+
+                const fileData = await getRes.json();
+                const currentSha = fileData.sha;
+                const currentText = b64DecodeUnicode(fileData.content);
+
+                // 2. 將新資料以適當空行追加在最後面
+                // 確保前後有足夠嘅換行分隔
+                const formattedNewText = "\n\n" + newText + "\n";
+                const updatedText = currentText.trimEnd() + formattedNewText;
+
+                statusEl.textContent = '⏳ 正在將新資料上傳並更新到 GitHub...';
+
+                // 3. 用 PUT 將更新後嘅內容送回 GitHub
+                const putRes = await fetch(apiUrl, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `token ${token}`,
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/vnd.github.v3+json'
+                    },
+                    body: JSON.stringify({
+                        message: "Admin: Add new essay via Web App",
+                        content: b64EncodeUnicode(updatedText),
+                        sha: currentSha
+                    })
+                });
+
+                if (!putRes.ok) {
+                    const errJson = await putRes.json();
+                    throw new Error(errJson.message || '上傳失敗');
+                }
+
+                statusEl.textContent = '✅ 上傳成功！新文章已即時更新到資料庫。';
+                statusEl.className = 'text-xs font-semibold text-emerald-600';
+                
+                // 清空輸入框
+                document.getElementById('newContent').value = '';
+                alert('上傳成功！您可以前往前台網頁查看最新內容。');
+
+            } catch (error) {
+                console.error(error);
+                statusEl.textContent = `❌ 錯誤：${error.message}`;
+                statusEl.className = 'text-xs font-semibold text-red-600';
+            } finally {
+                btnEl.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>
