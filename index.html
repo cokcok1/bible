@@ -95,7 +95,7 @@
 
     <!-- 右下角極細版本編號 -->
     <footer class="w-full text-right px-4 mt-6">
-        <span class="text-[10px] text-gray-400 font-mono tracking-tighter select-none">v1.9.0</span>
+        <span class="text-[10px] text-gray-400 font-mono tracking-tighter select-none">v1.9.1</span>
     </footer>
 
     <!-- JavaScript 解析器與邏輯 -->
@@ -312,12 +312,23 @@
                 return `傳道書第${N(+m[1])}章第${N(+m[2])}節`;
             }
             // 其他格式：數字全部轉中文，避免被讀錯
-            return '傳道書' + s.replace(/\d+/g, n => N(+n));
+            return '傳道書' + stripSymbols(s.replace(/\d+/g, n => N(+n)));
+        }
+
+        // 移除朗讀時會被讀出的非文字符號（括號、引號、表情符號、分隔線、網址等）
+        function stripSymbols(t) {
+            return t
+                .replace(/https?:\/\/\S+/g, '')
+                .replace(/[…⋯]+|\.{2,}|[—–―]+|[~～]+/g, '，')
+                .replace(/[「」『』“”‘’"'()（）\[\]［］【】〈〉《》〔〕{}]/g, '')
+                .replace(/\p{Extended_Pictographic}|\uFE0F|\u200D/gu, '')
+                .replace(/[^\p{L}\p{N}\s。，、！？；：,.!?;:]/gu, '')
+                .replace(/[ \t\u3000]+/g, ' ');
         }
 
         // 朗讀內文：清理標籤，將內文中的「章:節」及其他數字轉為中文
         function cleanBodyForSpeech(text) {
-            return text
+            return stripSymbols(text
                 .replace(/\*/g, '')
                 .replace(/<[^>]*>/g, '')
                 .replace(/[０-９]/g, c => String.fromCharCode(c.charCodeAt(0) - 0xFEE0))
@@ -327,7 +338,7 @@
                     (_, a, b, c) => `第${numToChinese(+a)}章第${numToChinese(+b)}節至第${numToChinese(+c)}節`)
                 .replace(/(\d+)\s*[:：]\s*(\d+)/g,
                     (_, a, b) => `第${numToChinese(+a)}章第${numToChinese(+b)}節`)
-                .replace(/\d+/g, n => numToChinese(+n));
+                .replace(/\d+/g, n => numToChinese(+n)));
         }
 
         // 啟動朗讀（分段隊列，避免長文章在手機無聲）
@@ -361,7 +372,7 @@
             }
 
             const chunk = speechQueue.shift();
-            if (!chunk.trim()) {
+            if (!/[\p{L}\p{N}]/u.test(chunk)) {
                 playNextChunk();
                 return;
             }
